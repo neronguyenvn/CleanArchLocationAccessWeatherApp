@@ -12,22 +12,22 @@ import kotlinx.coroutines.flow.Flow
 interface LocationDao {
 
     @Transaction
-    @Query("SELECT * FROM location")
+    @Query("SELECT * FROM Locations")
     fun observeAllWithWeather(): Flow<List<LocationEntityWithWeather>>
 
     @Transaction
-    @Query("SELECT * FROM location WHERE id = :id")
+    @Query("SELECT * FROM Locations WHERE id = :id")
     fun observeWithWeather(id: Int): Flow<LocationEntityWithWeather>
 
-    @Query("SELECT * FROM location")
+    @Query("SELECT * FROM Locations")
     suspend fun getAll(): List<LocationEntity>
 
-    @Query("SELECT * FROM location WHERE id = :id")
-    suspend fun getById(id: Int): LocationEntity
+    @Query("SELECT * FROM Locations WHERE id = :id")
+    suspend fun getById(id: Int): LocationEntity?
 
     @Insert
     suspend fun insert(locationEntity: LocationEntity): Long
 
-    @Query("DELETE FROM location WHERE id = :id")
+    @Query("DELETE FROM Locations WHERE id = :id")
     suspend fun deleteById(id: Long): Int
 }

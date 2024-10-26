@@ -5,10 +5,7 @@ import com.example.weatherjourney.core.database.LocationDao
 import com.example.weatherjourney.core.database.WeatherDao
 import com.example.weatherjourney.core.database.model.LocationEntity
 import com.example.weatherjourney.core.database.model.coordinate
-import com.example.weatherjourney.core.model.Coordinate
-import com.example.weatherjourney.core.model.Location
 import com.example.weatherjourney.core.network.NetworkDataSource
-import com.example.weatherjourney.core.network.model.NetworkWeather
 import com.example.weatherjourney.core.network.model.asEntity
 import javax.inject.Inject
 
@@ -24,9 +21,8 @@ class OfflineFirstWeatherRepository @Inject constructor(
         }
     }
 
-
     override suspend fun refreshWeatherOfLocation(locationId: Int) {
-        val location = locationDao.getById(locationId)
+        val location = locationDao.getById(locationId) ?: return
         refreshWeatherOfLocation(location)
     }
 

@@ -5,16 +5,16 @@ import androidx.room.PrimaryKey
 import com.example.weatherjourney.core.model.Coordinate
 import com.example.weatherjourney.core.model.Location
 
-@Entity(tableName = "location")
+@Entity(tableName = "Locations")
 data class LocationEntity(
+
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
     val address: String,
     val countryCode: String,
     val timeZone: String,
     val latitude: Double,
     val longitude: Double,
-
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
 )
 
 val LocationEntity.coordinate

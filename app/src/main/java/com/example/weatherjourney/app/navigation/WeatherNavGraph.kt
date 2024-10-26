@@ -32,7 +32,10 @@ fun WeatherNavGraph(
             onBackClick = navController::popBackStack,
             onSettingsClick = navController::navigateToSettings
         )
-        searchScreen(onBackClick = navController::popBackStack)
+        searchScreen(
+            onBackClick = navController::popBackStack,
+            onLocationClick = navController::navigateToLocationDetails
+        )
         settingsScreen(onBackClick = navController::popBackStack)
     }
 }

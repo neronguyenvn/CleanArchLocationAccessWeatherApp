@@ -2,7 +2,9 @@ package com.example.weatherjourney.core.data.implementation
 
 import com.example.weatherjourney.core.common.coroutine.Dispatcher
 import com.example.weatherjourney.core.common.coroutine.WtnDispatchers.IO
+import com.example.weatherjourney.core.data.LocationId
 import com.example.weatherjourney.core.data.LocationRepository
+import com.example.weatherjourney.core.data.WeatherRepository
 import com.example.weatherjourney.core.database.LocationDao
 import com.example.weatherjourney.core.database.model.asExternalModel
 import com.example.weatherjourney.core.model.Location
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OfflineFirstLocationRepository @Inject constructor(
+    private val weatherRepository: WeatherRepository,
     private val locationDao: LocationDao,
     private val network: NetworkDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -30,12 +33,14 @@ class OfflineFirstLocationRepository @Inject constructor(
         }
     }
 
-    override fun getLocationWithWeather(id: Int): Flow<LocationWithWeather> {
+    override fun getLocationWithWeather(id: Int): Flow<LocationWithWeather?> {
         return locationDao.observeWithWeather(id).map { it.asExternalModel() }
     }
 
-    override suspend fun saveLocation(location: Location) {
-        locationDao.insert(location.asEntity())
+    override suspend fun saveAndRefreshLocation(location: Location): LocationId {
+        val locationId = locationDao.insert(location.asEntity()).toInt()
+        weatherRepository.refreshWeatherOfLocation(locationId)
+        return locationId
     }
 
     override suspend fun deleteLocation(id: Int) {

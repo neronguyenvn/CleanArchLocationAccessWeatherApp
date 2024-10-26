@@ -2,7 +2,7 @@ package com.example.weatherjourney.core.database.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.weatherjourney.core.database.room.RoomWtnDatabase
+import com.example.weatherjourney.core.database.room.RoomWeatherDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,19 +19,19 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(
         @ApplicationContext context: Context
-    ): RoomWtnDatabase = Room.databaseBuilder(
+    ): RoomWeatherDatabase = Room.databaseBuilder(
         context,
-        RoomWtnDatabase::class.java,
+        RoomWeatherDatabase::class.java,
         "wtn-database",
     ).build()
 
     @Provides
     fun providesLocationDao(
-        database: RoomWtnDatabase
+        database: RoomWeatherDatabase
     ) = database.locationDao()
 
     @Provides
     fun providesWeatherDao(
-        database: RoomWtnDatabase
+        database: RoomWeatherDatabase
     ) = database.weatherDao()
 }

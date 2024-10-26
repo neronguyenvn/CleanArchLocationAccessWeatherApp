@@ -8,19 +8,22 @@ import com.example.weatherjourney.core.database.util.IntListHolder
 import com.example.weatherjourney.core.database.util.LongListHolder
 
 @Entity(
-    tableName = "daily_weather",
-    foreignKeys = [ForeignKey(
-        entity = LocationEntity::class,
-        parentColumns = arrayOf("id"),
-        childColumns = arrayOf("locationId"),
-        onDelete = ForeignKey.CASCADE
-    )]
+    tableName = "DailyWeathers",
+    foreignKeys = [
+        ForeignKey(
+            entity = LocationEntity::class,
+            parentColumns = arrayOf("id"),
+            childColumns = arrayOf("locationId"),
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
 )
 data class DailyWeatherEntity(
-    var time: LongListHolder,
-    var weatherCodes: IntListHolder,
-    var maxTemperatures: DoubleListHolder,
-    var minTemperatures: DoubleListHolder,
+
     @PrimaryKey
-    val locationId: Int
+    val locationId: Int,
+    val time: LongListHolder,
+    val weatherCodes: IntListHolder,
+    val maxTemperatures: DoubleListHolder,
+    val minTemperatures: DoubleListHolder,
 )

@@ -13,7 +13,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,15 +25,24 @@ import com.example.weatherjourney.core.designsystem.component.AddressWithFlag
 import com.example.weatherjourney.core.designsystem.component.SearchTopBar
 import com.example.weatherjourney.core.designsystem.component.SearchTopBarAction
 import com.example.weatherjourney.core.model.Location
+import com.example.weatherjourney.core.ui.ObserveAsEvents
+import com.example.weatherjourney.feature.search.SearchUiEvent.NavigateToDetails
 
 @Composable
 fun SearchRoute(
     onBackClick: () -> Unit,
+    onLocationClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
-    val query by viewModel.query.collectAsState()
+    val query by viewModel.query.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(viewModel.uiEvent) { event ->
+        when (event) {
+            is NavigateToDetails -> onLocationClick(event.locationId)
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         if (searchResults.isEmpty()) {
@@ -48,7 +56,7 @@ fun SearchRoute(
             query = query,
             searchResults = searchResults,
             onBackClick = onBackClick,
-            onLocationClick = { /* No action */ }, // TODO
+            onLocationClick = viewModel::saveLocation,
             onQueryChange = viewModel::onQueryChanged,
         )
     }

@@ -26,7 +26,7 @@ import com.example.weatherjourney.core.database.util.LongListConverter
     LongListConverter::class,
     DoubleListConverter::class
 )
-abstract class RoomWtnDatabase : RoomDatabase() {
+abstract class RoomWeatherDatabase : RoomDatabase() {
 
     abstract fun locationDao(): LocationDao
 
