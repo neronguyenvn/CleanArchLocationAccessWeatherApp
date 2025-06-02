@@ -1,9 +1,11 @@
 package com.example.weatherjourney.core.model
 
 data class Weather(
+    val coordinate: Coordinate,
     val current: CurrentWeather,
     val dailyForecasts: List<DailyWeather>,
     val hourlyForecasts: List<HourlyWeather>,
+    val id: Int = 0,
 )
 
 fun Weather.convertTemperature(convertMethod: (Double) -> Double) = this.copy(
@@ -21,25 +23,4 @@ fun Weather.convertTemperature(convertMethod: (Double) -> Double) = this.copy(
             temp = convertMethod(it.temp),
         )
     },
-)
-
-fun Weather.convertWindSpeed(convertMethod: (Double) -> Double) = this.copy(
-    current = current.copy(
-        windSpeed = convertMethod(current.windSpeed),
-    ),
-    hourlyForecasts = hourlyForecasts.map {
-        it.copy(windSpeed = convertMethod(it.windSpeed))
-    },
-)
-
-fun Weather.convertPressure(convertMethod: (Double) -> Double) = this.copy(
-    current = current.copy(
-        pressure = convertMethod(current.pressure),
-    ),
-)
-
-fun Weather.convertTimeFormat(convertMethod: (String) -> String) = this.copy(
-    current = current.copy(
-        date = convertMethod(current.date),
-    ),
 )

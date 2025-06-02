@@ -2,56 +2,60 @@ package com.example.weatherjourney.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.weatherjourney.core.data.LocationRepository
 import com.example.weatherjourney.core.data.UserDataRepository
-import com.example.weatherjourney.core.domain.ConvertUnitUseCase
-import com.example.weatherjourney.feature.home.HomeUiState.*
+import com.example.weatherjourney.core.datastore.model.UserData
+import com.example.weatherjourney.core.domain.GetLiveLocalWeatherUseCase
+import com.example.weatherjourney.core.model.LocationWithWeather
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    locationRepository: LocationRepository,
     userDataRepository: UserDataRepository,
-    private val convertUnitUseCase: ConvertUnitUseCase,
+    getLiveLocalWeatherUseCase: GetLiveLocalWeatherUseCase,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(Idle)
-    val uiState = _state.asStateFlow()
+    data class UiState(
+        val liveLocalWeather: LocationWithWeather,
+        val userData: UserData,
+        val isLoading: Boolean,
+    )
 
-    val locationsWithWeather = combine(
-        userDataRepository.userData,
-        locationRepository.getLocationsWithWeather(),
-    ) { userData, locations ->
-        locations.map { location ->
-            location.weather?.let { weather ->
-                location.copy(
-                    weather = convertUnitUseCase(
-                        weather = weather,
-                        temperatureUnit = userData.temperatureUnit,
-                        windSpeedUnit = userData.windSpeedUnit,
-                        pressureUnit = userData.pressureUnit,
-                        timeFormatUnit = userData.timeFormatUnit
-                    )
-                )
-            } ?: location
-        }
+    private val _isLoading = MutableStateFlow(false)
+
+    private val _liveLocalWeather = getLiveLocalWeatherUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null
+        )
+
+    private val _userData = userDataRepository.userData
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null
+        )
+
+    val uiState = combine(
+        _liveLocalWeather.filterNotNull(),
+        _userData.filterNotNull(),
+        _isLoading,
+    ) { liveLocalWeather, userData, isLoading ->
+
+        UiState(
+            liveLocalWeather = liveLocalWeather,
+            userData = userData,
+            isLoading = isLoading,
+        )
     }.stateIn(
         scope = viewModelScope,
-        initialValue = emptyList(),
-        started = SharingStarted.WhileSubscribed(5_000)
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = null
     )
-}
-
-sealed interface HomeUiState {
-
-    data object Idle : HomeUiState
-
-    data object Loading : HomeUiState
 }

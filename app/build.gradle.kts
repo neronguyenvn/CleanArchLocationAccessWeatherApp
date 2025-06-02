@@ -52,7 +52,6 @@ android {
 }
 
 dependencies {
-
     // Jetpack Compose
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
@@ -84,4 +83,7 @@ dependencies {
 
     // DataStore for key-value pairs
     implementation(libs.androidx.dataStore.core)
+
+    // Store for easier working with data
+    implementation(libs.store)
 }

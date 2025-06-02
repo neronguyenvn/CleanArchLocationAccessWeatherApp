@@ -2,12 +2,14 @@ package com.example.weatherjourney.core.data.di
 
 import com.example.weatherjourney.core.data.GpsRepository
 import com.example.weatherjourney.core.data.LocationRepository
+import com.example.weatherjourney.core.data.LocationWithWeatherRepository
 import com.example.weatherjourney.core.data.NetworkMonitor
 import com.example.weatherjourney.core.data.UserDataRepository
 import com.example.weatherjourney.core.data.WeatherRepository
 import com.example.weatherjourney.core.data.implementation.ConnectivityManagerNetworkMonitor
 import com.example.weatherjourney.core.data.implementation.DefaultGpsRepository
 import com.example.weatherjourney.core.data.implementation.OfflineFirstLocationRepository
+import com.example.weatherjourney.core.data.implementation.OfflineFirstLocationWithWeatherRepository
 import com.example.weatherjourney.core.data.implementation.OfflineFirstUserDataRepository
 import com.example.weatherjourney.core.data.implementation.OfflineFirstWeatherRepository
 import dagger.Binds
@@ -44,4 +46,8 @@ abstract class DataModule {
         networkMonitor: ConnectivityManagerNetworkMonitor
     ): NetworkMonitor
 
+    @Binds
+    abstract fun bindsLocationWithWeatherRepository(
+        locationWithWeatherRepository: OfflineFirstLocationWithWeatherRepository
+    ): LocationWithWeatherRepository
 }

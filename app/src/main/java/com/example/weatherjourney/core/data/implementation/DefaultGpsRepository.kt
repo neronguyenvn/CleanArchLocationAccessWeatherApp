@@ -29,7 +29,7 @@ class DefaultGpsRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : GpsRepository {
 
-    override fun getCurrentCoordinateStream(): Flow<Coordinate> = callbackFlow {
+    override fun getGpsLocationStream(): Flow<Coordinate> = callbackFlow {
         val hasLocationPermission = when {
             context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION) -> true
             context.checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION) -> true
@@ -54,10 +54,6 @@ class DefaultGpsRepository @Inject constructor(
 
         val locationRequest = createLocationRequest()
         client.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
-
-        client.lastLocation.result?.let {
-            trySend(it.coordinate)
-        }
 
         awaitClose {
             client.removeLocationUpdates(locationCallback)

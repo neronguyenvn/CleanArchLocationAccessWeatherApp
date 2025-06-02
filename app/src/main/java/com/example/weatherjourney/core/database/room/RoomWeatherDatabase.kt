@@ -8,6 +8,7 @@ import com.example.weatherjourney.core.database.WeatherDao
 import com.example.weatherjourney.core.database.model.DailyWeatherEntity
 import com.example.weatherjourney.core.database.model.HourlyWeatherEntity
 import com.example.weatherjourney.core.database.model.LocationEntity
+import com.example.weatherjourney.core.database.model.WeatherEntity
 import com.example.weatherjourney.core.database.util.DoubleListConverter
 import com.example.weatherjourney.core.database.util.IntListConverter
 import com.example.weatherjourney.core.database.util.LongListConverter
@@ -15,6 +16,7 @@ import com.example.weatherjourney.core.database.util.LongListConverter
 @Database(
     entities = [
         LocationEntity::class,
+        WeatherEntity::class,
         DailyWeatherEntity::class,
         HourlyWeatherEntity::class
     ],

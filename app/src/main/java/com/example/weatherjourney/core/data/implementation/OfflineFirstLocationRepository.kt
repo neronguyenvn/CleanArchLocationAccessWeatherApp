@@ -5,11 +5,10 @@ import com.example.weatherjourney.core.common.coroutine.WtnDispatchers.IO
 import com.example.weatherjourney.core.data.LocationId
 import com.example.weatherjourney.core.data.LocationRepository
 import com.example.weatherjourney.core.data.WeatherRepository
+import com.example.weatherjourney.core.data.mapper.asEntity
 import com.example.weatherjourney.core.database.LocationDao
-import com.example.weatherjourney.core.database.model.asExternalModel
 import com.example.weatherjourney.core.model.Location
 import com.example.weatherjourney.core.model.LocationWithWeather
-import com.example.weatherjourney.core.model.asEntity
 import com.example.weatherjourney.core.network.NetworkDataSource
 import com.example.weatherjourney.core.network.model.asExternalModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class OfflineFirstLocationRepository @Inject constructor(
@@ -28,13 +26,11 @@ class OfflineFirstLocationRepository @Inject constructor(
 ) : LocationRepository {
 
     override fun getLocationsWithWeather(): Flow<List<LocationWithWeather>> {
-        return locationDao.observeAllWithWeather().map { locationEntities ->
-            locationEntities.map { it.asExternalModel() }
-        }
+        TODO()
     }
 
     override fun getLocationWithWeather(id: Int): Flow<LocationWithWeather?> {
-        return locationDao.observeWithWeather(id).map { it.asExternalModel() }
+        TODO()
     }
 
     override suspend fun saveAndRefreshLocation(location: Location): LocationId {

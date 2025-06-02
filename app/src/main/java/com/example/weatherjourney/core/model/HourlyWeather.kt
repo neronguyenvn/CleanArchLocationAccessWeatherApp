@@ -1,8 +1,8 @@
 package com.example.weatherjourney.core.model
 
 data class HourlyWeather(
-    val date: String,
+    val epochTime: Long,
     val temp: Double,
-    val windSpeed: Double,
+    val humanity: Double,
     val weatherType: WeatherType,
 )

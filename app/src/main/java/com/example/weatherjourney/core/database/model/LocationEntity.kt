@@ -7,20 +7,20 @@ import com.example.weatherjourney.core.model.Location
 
 @Entity(tableName = "Locations")
 data class LocationEntity(
-
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
     val address: String,
     val countryCode: String,
     val timeZone: String,
     val latitude: Double,
     val longitude: Double,
+
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
 )
 
 val LocationEntity.coordinate
     get() = Coordinate.create(latitude, longitude)
 
-fun LocationEntity.asExternalModel() = Location(
+fun LocationEntity.asLocation() = Location(
     id = id,
     address = address,
     countryCode = countryCode,

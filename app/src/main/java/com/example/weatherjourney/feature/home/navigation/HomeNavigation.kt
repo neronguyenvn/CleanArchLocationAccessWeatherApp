@@ -8,14 +8,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object HomeRoute
 
+// TODO
 fun NavGraphBuilder.homeScreen(
     onSearchClick: () -> Unit,
     onLocationClick: (Int) -> Unit,
 ) {
     composable<HomeRoute> {
         HomeRoute(
-            onSearchClick = onSearchClick,
-            onLocationClick = onLocationClick
+            onBackClick = {},
+            onSettingsClick = {}
         )
     }
 }

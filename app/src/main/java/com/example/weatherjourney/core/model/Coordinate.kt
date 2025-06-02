@@ -4,14 +4,14 @@ import com.example.weatherjourney.core.common.util.roundTo
 
 @ConsistentCopyVisibility
 data class Coordinate private constructor(
-    val lat: Double,
-    val long: Double
+    val latitude: Double,
+    val longitude: Double
 ) {
     init {
-        require(lat in -90.0..90.0) {
+        require(latitude in -90.0..90.0) {
             "Latitude must be in range -90.0..90.0"
         }
-        require(long in -180.0..180.0) {
+        require(longitude in -180.0..180.0) {
             "Longitude must be in range -180.0..180.0"
         }
     }

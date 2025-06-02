@@ -6,24 +6,37 @@ import androidx.room.PrimaryKey
 import com.example.weatherjourney.core.database.util.DoubleListHolder
 import com.example.weatherjourney.core.database.util.IntListHolder
 import com.example.weatherjourney.core.database.util.LongListHolder
+import com.example.weatherjourney.core.model.DailyWeather
+import com.example.weatherjourney.core.model.WeatherType
 
 @Entity(
     tableName = "DailyWeathers",
     foreignKeys = [
         ForeignKey(
-            entity = LocationEntity::class,
+            entity = WeatherEntity::class,
             parentColumns = arrayOf("id"),
-            childColumns = arrayOf("locationId"),
+            childColumns = arrayOf("weatherId"),
             onDelete = ForeignKey.CASCADE
         )
     ]
 )
 data class DailyWeatherEntity(
-
-    @PrimaryKey
-    val locationId: Int,
-    val time: LongListHolder,
+    val epochTimes: LongListHolder,
     val weatherCodes: IntListHolder,
     val maxTemperatures: DoubleListHolder,
     val minTemperatures: DoubleListHolder,
+
+    @PrimaryKey
+    val weatherId: Int = 0,
 )
+
+fun DailyWeatherEntity.asDailyForecasts(): List<DailyWeather> {
+    return epochTimes.list.mapIndexed { index, time ->
+        DailyWeather(
+            epochTime = time,
+            maxTemp = maxTemperatures.list[index],
+            minTemp = minTemperatures.list[index],
+            weatherType = WeatherType.fromWMO(weatherCodes.list[index]),
+        )
+    }
+}

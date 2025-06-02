@@ -1,21 +1,30 @@
 package com.example.weatherjourney.feature.home
 
+
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -23,39 +32,41 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.weatherjourney.R
 import com.example.weatherjourney.core.common.util.roundTo
-import com.example.weatherjourney.core.designsystem.component.AddressWithFlag
-import com.example.weatherjourney.core.designsystem.component.SearchTopBar
-import com.example.weatherjourney.core.designsystem.component.SearchTopBarAction
-import com.example.weatherjourney.core.model.LocationWithWeather
-import com.example.weatherjourney.feature.home.HomeUiState.*
-
-private const val TAG = "HomeScreen"
+import com.example.weatherjourney.core.datastore.model.UserData
+import com.example.weatherjourney.core.model.CurrentWeather
+import com.example.weatherjourney.core.model.DailyWeather
+import com.example.weatherjourney.core.model.HourlyWeather
+import com.example.weatherjourney.presentation.theme.superscript
+import kotlin.math.roundToInt
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeRoute(
-    onSearchClick: () -> Unit,
-    onLocationClick: (Int) -> Unit,
+    onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val locationsWithWeather by viewModel.locationsWithWeather.collectAsStateWithLifecycle()
-    Log.d(TAG, "Current UiState: $uiState")
-
-    Column {
-        SearchTopBar(action = SearchTopBarAction.NoBack(onSearchClick))
+    uiState?.let { uiState ->
         HomeScreen(
             uiState = uiState,
-            locationsWithWeather = locationsWithWeather,
-            onLocationClick = onLocationClick,
+            onBackClick = onBackClick,
+            onSettingsClick = onSettingsClick,
             modifier = modifier
         )
     }
@@ -64,68 +75,256 @@ fun HomeRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState,
-    locationsWithWeather: List<LocationWithWeather>,
-    onLocationClick: (Int) -> Unit,
+    uiState: HomeViewModel.UiState,
+    onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    PullToRefreshBox(
-        isRefreshing = uiState is Loading,
-        onRefresh = { }, // TODO
-        modifier = modifier,
-    ) {
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(
-                items = locationsWithWeather,
-                key = { it.location.id }
+    val screenPadding = PaddingValues(
+        start = 16.dp,
+        end = 16.dp,
+        top = 16.dp,
+    )
+    Column(modifier = modifier) {
+        InfoTopBar(
+            address = uiState.liveLocalWeather.location.address,
+            onBackClick = onBackClick,
+            onSettingsClick = onSettingsClick,
+        )
+        PullToRefreshBox(
+            isRefreshing = false,
+            onRefresh = { }, // TODO
+            modifier = modifier.padding(screenPadding),
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
-                LocationWithWeatherItem(
-                    locationWithWeather = it,
-                    onClick = onLocationClick,
-                )
+                item {
+                    uiState.liveLocalWeather.weather?.current?.let {
+                        CurrentWeatherContent(
+                            weather = it,
+                            userData = uiState.userData,
+                        )
+                    }
+                }
+
+                item {
+                    DailyWeatherContent(uiState.liveLocalWeather.weather?.dailyForecasts.orEmpty())
+                }
+
+                items(uiState.liveLocalWeather.weather?.hourlyForecasts.orEmpty()) { weather ->
+                    HourlyWeatherItem(
+                        weather = weather
+                    )
+                }
             }
         }
     }
 }
 
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LocationWithWeatherItem(
-    locationWithWeather: LocationWithWeather,
-    onClick: (Int) -> Unit,
+fun CurrentWeatherContent(
+    weather: CurrentWeather,
+    userData: UserData,
+    modifier: Modifier = Modifier,
+) {
+    Card(modifier) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Row {
+                Spacer(Modifier.weight(1f))
+//                Text(
+//                    weather.date,
+//                    style = MaterialTheme.typography.labelMedium,
+//                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Image(
+                painter = painterResource(weather.weatherType.iconRes),
+                contentDescription = null,
+                modifier = Modifier.height(150.dp),
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                style = MaterialTheme.typography.displayLarge,
+                text = buildAnnotatedString {
+                    append("${weather.temp.roundTo(1)}")
+                    withStyle(superscript) {
+                        append(userData.temperatureUnit.label)
+                    }
+                },
+            )
+            Text(
+                weather.weatherType.weatherDesc,
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+//                WeatherDataDisplay(
+//                    value = weather.pressure.roundTo(1),
+//                    unit = userData.pressureUnit.label,
+//                    icon = ImageVector.vectorResource(R.drawable.ic_pressure),
+//                )
+                WeatherDataDisplay(
+                    value = weather.humidity.roundToInt(),
+                    unit = "%",
+                    icon = ImageVector.vectorResource(R.drawable.ic_drop),
+                )
+//                WeatherDataDisplay(
+//                    value = weather.windSpeed.roundTo(1),
+//                    unit = userData.windSpeedUnit.label,
+//                    icon = ImageVector.vectorResource(R.drawable.ic_wind),
+//                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DailyWeatherContent(listDaily: List<DailyWeather>, modifier: Modifier = Modifier) {
+    LazyRow(modifier, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        items(listDaily) { daily ->
+            DailyWeatherItem(daily)
+        }
+    }
+}
+
+@Composable
+fun DailyWeatherItem(
+    daily: DailyWeather,
     modifier: Modifier = Modifier,
 ) {
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { onClick(locationWithWeather.id) },
+            .border(1.dp, MaterialTheme.colorScheme.onBackground, RoundedCornerShape(20.dp))
+            .padding(16.dp)
+            .height(150.dp)
+            .width(100.dp),
     ) {
-        Spacer(Modifier.height(16.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AddressWithFlag(
-                countryCode = locationWithWeather.location.countryCode,
-                address = locationWithWeather.location.address,
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(8.dp))
-            locationWithWeather.weather?.current?.let {
-                Text(
-                    text = stringResource(R.string.temperature, it.temp.roundTo(1)),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Spacer(Modifier.width(8.dp))
-                Image(
-                    painter = painterResource(it.weatherType.iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.width(30.dp),
+//        Text(
+//            text = "${daily.date}\n${daily.weatherType.weatherDesc}",
+//            style = MaterialTheme.typography.titleSmall,
+//            textAlign = TextAlign.Center,
+//        )
+        Image(
+            painter = painterResource(daily.weatherType.iconRes),
+            contentDescription = null,
+            modifier = Modifier.width(40.dp),
+        )
+        Text(
+            text = stringResource(
+                R.string.max_min_temperature,
+                daily.maxTemp.roundToInt(),
+                daily.minTemp.roundToInt(),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+fun HourlyWeatherItem(
+    weather: HourlyWeather,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .height(50.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+//        Text(
+//            weather.date,
+//            style = MaterialTheme.typography.bodyMedium,
+//            modifier = Modifier.weight(1f),
+//        )
+        Image(
+            painter = painterResource(weather.weatherType.iconRes),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier.width(40.dp),
+        )
+        Text(
+            stringResource(R.string.temperature, weather.temp.roundTo(1)),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.weight(0.6f),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InfoTopBar(
+    address: String,
+    onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    CenterAlignedTopAppBar(
+        modifier = modifier,
+        navigationIcon = {
+            IconButton(onClick = onBackClick) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Back",
                 )
             }
-        }
-        Spacer(Modifier.height(16.dp))
-        HorizontalDivider()
+        },
+        title = {
+            Row {
+                Text(
+                    address,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        },
+        actions = {
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_setting),
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        },
+    )
+}
+
+@Composable
+fun WeatherDataDisplay(
+    value: Number,
+    unit: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    textStyle: TextStyle = TextStyle(),
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(25.dp),
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "$value$unit",
+            style = textStyle,
+        )
     }
 }
